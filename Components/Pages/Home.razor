@@ -1,0 +1,74 @@
+﻿@page "/"
+@using QRBusinessCard.Services
+@inject QRCodeService QRCodeService
+@rendermode InteractiveServer
+
+<PageTitle>QR Business Card Generator</PageTitle>
+
+<div class="container">
+    <h1>QR Business Card Generator</h1>
+    
+    <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input id="firstName" class="form-control" @bind="firstName" />
+    </div>
+    
+    <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input id="lastName" class="form-control" @bind="lastName" />
+    </div>
+    
+    <div class="form-group">
+        <label for="company">Company:</label>
+        <input id="company" class="form-control" @bind="company" />
+    </div>
+    
+    <div class="form-group">
+        <label for="jobTitle">Job Title:</label>
+        <input id="jobTitle" class="form-control" @bind="jobTitle" />
+    </div>
+    
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input id="email" type="email" class="form-control" @bind="email" />
+    </div>
+    
+    <div class="form-group">
+        <label for="phone">Phone:</label>
+        <input id="phone" type="tel" class="form-control" @bind="phone" />
+    </div>
+    
+    <button class="btn btn-primary" @onclick="GenerateQRCode">Generate QR Code</button>
+
+    @if (!string.IsNullOrEmpty(qrCodeImage))
+    {
+        <div class="qr-code-container">
+            <img src="@qrCodeImage" alt="QR Code" />
+            <p>Scan this QR code to add the contact to your phone</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string firstName = "";
+    private string lastName = "";
+    private string company = "";
+    private string jobTitle = "";
+    private string email = "";
+    private string phone = "";
+    private string qrCodeImage = "";
+
+    private void GenerateQRCode()
+    {
+        try
+        {
+            qrCodeImage = QRCodeService.GenerateVCardQRCode(
+                firstName, lastName, company, jobTitle, email, phone);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating QR code: {ex.Message}");
+            // You could also add a UI element to show the error
+        }
+    }
+}
