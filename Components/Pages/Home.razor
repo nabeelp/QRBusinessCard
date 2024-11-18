@@ -140,6 +140,7 @@
 
     private void OnInputChanged(ChangeEventArgs e)
     {
+        // Enable the Generate button if the first name or last name is not empty
         isGenerateButtonDisabled = string.IsNullOrEmpty(firstName) && string.IsNullOrEmpty(lastName);
     }
 
@@ -149,6 +150,8 @@
         {
             qrCodeImage = QRCodeService.GenerateVCardQRCode(
             firstName, lastName, company, jobTitle, email, phone);
+
+            // disable the button after generating the QR code
             isGenerateButtonDisabled = true;
         }
         catch (Exception ex)
