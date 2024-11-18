@@ -3,51 +3,130 @@
 @inject QRCodeService QRCodeService
 @rendermode InteractiveServer
 
-<PageTitle>QR Business Card Generator</PageTitle>
+<PageTitle>Business Card Generator</PageTitle>
 
-<div class="container">
-    <h1>QR Business Card Generator</h1>
-    
-    <div class="form-group">
-        <label for="firstName">First Name:</label>
-        <input id="firstName" class="form-control" @bind="firstName" />
-    </div>
-    
-    <div class="form-group">
-        <label for="lastName">Last Name:</label>
-        <input id="lastName" class="form-control" @bind="lastName" />
-    </div>
-    
-    <div class="form-group">
-        <label for="company">Company:</label>
-        <input id="company" class="form-control" @bind="company" />
-    </div>
-    
-    <div class="form-group">
-        <label for="jobTitle">Job Title:</label>
-        <input id="jobTitle" class="form-control" @bind="jobTitle" />
-    </div>
-    
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input id="email" type="email" class="form-control" @bind="email" />
-    </div>
-    
-    <div class="form-group">
-        <label for="phone">Phone:</label>
-        <input id="phone" type="tel" class="form-control" @bind="phone" />
-    </div>
-    
-    <button class="btn btn-primary" @onclick="GenerateQRCode">Generate QR Code</button>
+<section class="hero">
+    <div class="hero-body">
+        <div class="container content">
+            <div class="columns">
+                <div class="column is-half is-offset-one-quarter">
+                    <h1 class="has-text-centered">
+                        Business Card Generator
+                    </h1>
 
-    @if (!string.IsNullOrEmpty(qrCodeImage))
-    {
-        <div class="qr-code-container">
-            <img src="@qrCodeImage" alt="QR Code" />
-            <p>Scan this QR code to add the contact to your phone</p>
+                    <p class="has-text-centered">
+                        Generate a digital business card in QR Code format.
+                    </p>
+
+                    <hr>
+
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Profile</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" placeholder="First Name" name="firstname"
+                                        @bind="firstName" required @oninput="OnInputChanged">
+                                    <span class="icon is-small is-left">
+                                        <img src="icons/user.svg">
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" placeholder="Last Name" name="lastname"
+                                        @bind="lastName" required @oninput="OnInputChanged">
+                                    <span class="icon is-small is-left">
+                                        <img src="icons/user.svg">
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Business</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" placeholder="Company" name="company"
+                                        @bind="company" @oninput="OnInputChanged">
+                                    <span class="icon is-small is-left">
+                                        <img src="icons/building.svg">
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" placeholder="Job" name="job" @bind="jobTitle" @oninput="OnInputChanged">
+                                    <span class="icon is-small is-left">
+                                        <img src="icons/briefcase.svg">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field is-horizontal">
+                        <div class="field-label is-normal">
+                            <label class="label">Contact</label>
+                        </div>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input" type="email" placeholder="Email" name="email" @bind="email" @oninput="OnInputChanged">
+                                    <span class="icon is-small is-left">
+                                        <img src="icons/at-sign.svg">
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" placeholder="Phone" name="phone" @bind="phone" @oninput="OnInputChanged">
+                                    <span class="icon is-small is-left">
+                                        <img src="icons/phone.svg">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field is-horizontal">
+                        <div class="field-label"></div>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-fullwidth" @onclick="GenerateQRCode" disabled="@isGenerateButtonDisabled">
+                                        <span class="icon">
+                                            <img src="icons/send.svg">
+                                        </span>
+                                        <span>Generate</span>
+                                    </button>
+                                </div>
+                                @if (!string.IsNullOrEmpty(qrCodeImage))
+                                {
+                                    <div class="card-image is-flex is-justify-content-center">
+                                        <img src="@qrCodeImage" alt="QR Code" width="192">
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    }
-</div>
+    </div>
+
+</section>
+
 
 @code {
     private string firstName = "";
@@ -57,13 +136,20 @@
     private string email = "";
     private string phone = "";
     private string qrCodeImage = "";
+    private bool isGenerateButtonDisabled = true;
+
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        isGenerateButtonDisabled = string.IsNullOrEmpty(firstName) && string.IsNullOrEmpty(lastName);
+    }
 
     private void GenerateQRCode()
     {
         try
         {
             qrCodeImage = QRCodeService.GenerateVCardQRCode(
-                firstName, lastName, company, jobTitle, email, phone);
+            firstName, lastName, company, jobTitle, email, phone);
+            isGenerateButtonDisabled = true;
         }
         catch (Exception ex)
         {
