@@ -306,8 +306,6 @@ class GoogleWalletPassService
     };
     
     // Create JSON representations of the class and object
-    // JObject serializedClass = JObject.Parse(
-    //      JsonConvert.SerializeObject(newClass, excludeNulls));
     JObject serializedObject = JObject.Parse(
         JsonConvert.SerializeObject(localObject, excludeNulls));
 
@@ -325,10 +323,6 @@ class GoogleWalletPassService
       {
         // The listed classes and objects will be created
         // when the user saves the pass to their wallet
-        // genericClasses = new List<JObject>
-        // {
-        //   serializedClass
-        // },
         genericObjects = new List<JObject>
         {
           serializedObject
