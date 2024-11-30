@@ -196,7 +196,7 @@ class GoogleWalletPassService
         DefaultValue = new TranslatedString
         {
           Language = "en-US",
-          Value = "Bussiness Card"
+          Value = "Business Card"
         }
       },
       Subheader = new LocalizedString
