@@ -226,7 +226,7 @@ class GoogleWalletPassService
           new TextModuleData
           {
             Id = "email",
-            Header = "email",
+            Header = "Email",
             Body = contactInfo.Email
           },
           new TextModuleData
