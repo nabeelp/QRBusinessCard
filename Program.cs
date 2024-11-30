@@ -8,7 +8,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Register QRCodeService
-builder.Services.AddScoped<QRCodeService>();
+builder.Services.AddSingleton<QRCodeService>();
 
 var app = builder.Build();
 

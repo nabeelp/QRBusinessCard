@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Google.Apis.Walletobjects.v1.Data
+@using QRBusinessCard.Models
 @using QRBusinessCard.Services
 @inject QRCodeService QRCodeService
 @rendermode InteractiveServer
@@ -28,7 +30,7 @@
                             <div class="field">
                                 <div class="control has-icons-left">
                                     <input class="input" type="text" placeholder="First Name" name="firstname"
-                                        @bind="firstName" required @oninput="OnInputChanged">
+                                        @bind="contactInfo.FirstName" required @oninput="OnInputChanged">
                                     <span class="icon is-small is-left">
                                         <img src="icons/user.svg">
                                     </span>
@@ -38,7 +40,7 @@
                             <div class="field">
                                 <div class="control has-icons-left">
                                     <input class="input" type="text" placeholder="Last Name" name="lastname"
-                                        @bind="lastName" required @oninput="OnInputChanged">
+                                        @bind="contactInfo.LastName" required @oninput="OnInputChanged">
                                     <span class="icon is-small is-left">
                                         <img src="icons/user.svg">
                                     </span>
@@ -56,7 +58,7 @@
                             <div class="field">
                                 <div class="control has-icons-left">
                                     <input class="input" type="text" placeholder="Company" name="company"
-                                        @bind="company" @oninput="OnInputChanged">
+                                        @bind="contactInfo.Company" @oninput="OnInputChanged">
                                     <span class="icon is-small is-left">
                                         <img src="icons/building.svg">
                                     </span>
@@ -65,7 +67,7 @@
 
                             <div class="field">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" placeholder="Job" name="job" @bind="jobTitle" @oninput="OnInputChanged">
+                                    <input class="input" type="text" placeholder="Job" name="job" @bind="contactInfo.JobTitle" @oninput="OnInputChanged">
                                     <span class="icon is-small is-left">
                                         <img src="icons/briefcase.svg">
                                     </span>
@@ -81,7 +83,7 @@
                         <div class="field-body">
                             <div class="field">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="email" placeholder="Email" name="email" @bind="email" @oninput="OnInputChanged">
+                                    <input class="input" type="email" placeholder="Email" name="email" @bind="contactInfo.Email" @oninput="OnInputChanged">
                                     <span class="icon is-small is-left">
                                         <img src="icons/at-sign.svg">
                                     </span>
@@ -90,7 +92,7 @@
 
                             <div class="field">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" placeholder="Phone" name="phone" @bind="phone" @oninput="OnInputChanged">
+                                    <input class="input" type="text" placeholder="Phone" name="phone" @bind="contactInfo.Phone" @oninput="OnInputChanged">
                                     <span class="icon is-small is-left">
                                         <img src="icons/phone.svg">
                                     </span>
@@ -116,6 +118,29 @@
                                     <div class="card-image is-flex is-justify-content-center">
                                         <img src="@qrCodeImage" alt="QR Code" width="192">
                                     </div>
+
+                                    <div class="field is-horizontal">
+                                        <div class="field-body">
+                                            <div class="field">
+                                                <div class="control is-justify-content-center">
+                                                    <button class="is-fullwidth" @onclick="AddToGoogleWallet">
+                                                        <span class="image">
+                                                            <img src="icons/enUS_add_to_google_wallet_wallet-button.svg">
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="field">
+                                                <div class="control is-justify-content-center">
+                                                    <button class="is-fullwidth" @onclick="AddToGoogleWallet">
+                                                        <span class="image">
+                                                            <img src="icons/enUS_add_to_google_wallet_wallet-button.svg">
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 }
                             </div>
                         </div>
@@ -129,35 +154,73 @@
 
 
 @code {
-    private string firstName = "";
-    private string lastName = "";
-    private string company = "";
-    private string jobTitle = "";
-    private string email = "";
-    private string phone = "";
+    private ContactInfo contactInfo = new ContactInfo(); // Change to use ContactInfo class
     private string qrCodeImage = "";
     private bool isGenerateButtonDisabled = true;
+    private bool isLoading = false;
+    private string googleWalletUrl = "";
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
 
     private void OnInputChanged(ChangeEventArgs e)
     {
         // Enable the Generate button if the first name or last name is not empty
-        isGenerateButtonDisabled = string.IsNullOrEmpty(firstName) && string.IsNullOrEmpty(lastName);
+        isGenerateButtonDisabled = string.IsNullOrEmpty(contactInfo.FirstName) && string.IsNullOrEmpty(contactInfo.LastName);
     }
 
-    private void GenerateQRCode()
+    private async Task GenerateQRCode()
     {
+        isLoading = true;
+        isGenerateButtonDisabled = true;
         try
         {
-            qrCodeImage = QRCodeService.GenerateVCardQRCode(
-            firstName, lastName, company, jobTitle, email, phone);
+            qrCodeImage = QRCodeService.GenerateVCardQRCode(contactInfo); // Change to use ContactInfo class
 
-            // disable the button after generating the QR code
-            isGenerateButtonDisabled = true;
+            await GenerateGoogleWalletUrl();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error generating QR code: {ex.Message}");
             // You could also add a UI element to show the error
+
+            isGenerateButtonDisabled = false;
         }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // Create a Google Wallet generic pass and return the signed JWT object
+    private async Task GenerateGoogleWalletUrl()
+    {
+        try
+        {
+            // Obtained from the Google Pay & Wallet console
+            // TODO: Retrieve from config
+            string issuerId = "3388000000022799184"; 
+            // Definition of the class of pass, consistent across all generated pass objects
+            // TODO: Retrieve from config
+            string classSuffix = "business-card"; 
+            // A unique identifier for the pass object ... in our case it would be the service principal name of the currently logged in user
+            // TODO: Retrieve from logged in user
+            string objectSuffix = "nabeelp";
+
+            // Get the Google Add To Wallet link
+            GoogleWalletPassService googleWalletPassService = new GoogleWalletPassService();
+            googleWalletUrl = googleWalletPassService.GetAddToWalletLink(issuerId, classSuffix, objectSuffix, contactInfo);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding to Google Wallet: {ex.Message}");
+            // Optionally, display an error message to the user
+        }
+    }
+
+    // Create a Google Wallet generic pass and return the signed JWT object
+    private async Task AddToGoogleWallet()
+    {
+        NavigationManager.NavigateTo(googleWalletUrl, forceLoad: true);
     }
 }
