@@ -37,7 +37,7 @@
                             <div class="field">
                                 <div class="control has-icons-left">
                                     <input class="input" type="text" placeholder="First Name" name="firstname"
-                                        @bind="contactInfo.FirstName" required @oninput="OnInputChanged">
+                                        @bind="contactInfo.FirstName">
                                     <span class="icon is-small is-left">
                                         <img src="icons/user.svg">
                                     </span>
@@ -47,7 +47,7 @@
                             <div class="field">
                                 <div class="control has-icons-left">
                                     <input class="input" type="text" placeholder="Last Name" name="lastname"
-                                        @bind="contactInfo.LastName" required @oninput="OnInputChanged">
+                                        @bind="contactInfo.LastName">
                                     <span class="icon is-small is-left">
                                         <img src="icons/user.svg">
                                     </span>
@@ -65,7 +65,7 @@
                             <div class="field">
                                 <div class="control has-icons-left">
                                     <input class="input" type="text" placeholder="Company" name="company"
-                                        @bind="contactInfo.Company" @oninput="OnInputChanged">
+                                        @bind="contactInfo.Company">
                                     <span class="icon is-small is-left">
                                         <img src="icons/building.svg">
                                     </span>
@@ -74,7 +74,8 @@
 
                             <div class="field">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" placeholder="Job" name="job" @bind="contactInfo.JobTitle" @oninput="OnInputChanged">
+                                    <input class="input" type="text" placeholder="Job" name="job" 
+                                        @bind="contactInfo.JobTitle">
                                     <span class="icon is-small is-left">
                                         <img src="icons/briefcase.svg">
                                     </span>
@@ -90,7 +91,8 @@
                         <div class="field-body">
                             <div class="field">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="email" placeholder="Email" name="email" @bind="contactInfo.Email" @oninput="OnInputChanged">
+                                    <input class="input" type="email" placeholder="Email" name="email" 
+                                        @bind="contactInfo.Email">
                                     <span class="icon is-small is-left">
                                         <img src="icons/at-sign.svg">
                                     </span>
@@ -99,7 +101,8 @@
 
                             <div class="field">
                                 <div class="control has-icons-left">
-                                    <input class="input" type="text" placeholder="Phone" name="phone" @bind="contactInfo.Phone" @oninput="OnInputChanged">
+                                    <input class="input" type="text" placeholder="Phone" name="phone" 
+                                        @bind="contactInfo.Phone">
                                     <span class="icon is-small is-left">
                                         <img src="icons/phone.svg">
                                     </span>
@@ -113,11 +116,11 @@
                         <div class="field-body">
                             <div class="field">
                                 <div class="control">
-                                    <button class="button is-fullwidth" @onclick="GenerateQRCode" disabled="@isGenerateButtonDisabled">
+                                    <button class="button is-fullwidth" @onclick="GenerateQRCode">
                                         <span class="icon">
                                             <img src="icons/send.svg">
                                         </span>
-                                        <span>Generate</span>
+                                        <span>Generate @contactInfo.Company</span>
                                     </button>
                                 </div>
                                 @if (!string.IsNullOrEmpty(qrCodeImage))
@@ -163,24 +166,28 @@
 @code {
     private ContactInfo contactInfo = new ContactInfo(); // Change to use ContactInfo class
     private string qrCodeImage = "";
-    private bool isGenerateButtonDisabled = true;
-    private bool isLoading = false;
     private string errorMessage = "";
 
     [Inject]
     private NavigationManager NavigationManager { get; set; }
 
-    private void OnInputChanged(ChangeEventArgs e)
-    {
-        // Enable the Generate button if the first name or last name is not empty
-        isGenerateButtonDisabled = string.IsNullOrEmpty(contactInfo.FirstName) && string.IsNullOrEmpty(contactInfo.LastName);
-    }
-
     // Generate QR Code  
     private void GenerateQRCode()
     {
-        isLoading = true;
-        isGenerateButtonDisabled = true;
+        // validate that all fields have been filled in
+        if (string.IsNullOrEmpty(contactInfo.FirstName) ||
+            string.IsNullOrEmpty(contactInfo.LastName) ||
+            string.IsNullOrEmpty(contactInfo.Company) ||
+            string.IsNullOrEmpty(contactInfo.JobTitle) ||
+            string.IsNullOrEmpty(contactInfo.Email) ||
+            string.IsNullOrEmpty(contactInfo.Phone))
+            {
+                errorMessage = "Please fill in all fields";
+                qrCodeImage = ""; // hide the QR code from showing, in case it is already showing
+                return;
+            }
+
+        // generate the QR code
         try
         {
             qrCodeImage = QRCodeService.GenerateVCardQRCode(contactInfo); // Change to use ContactInfo class
@@ -188,11 +195,7 @@
         catch (Exception ex)
         {
             errorMessage = $"Error generating QR code: {ex.Message}";
-            isGenerateButtonDisabled = false;
-        }
-        finally
-        {
-            isLoading = false;
+            qrCodeImage = ""; // hide the QR code from showing, in case it is already showing
         }
     }
 
@@ -222,6 +225,7 @@
         catch (Exception ex)
         {
             errorMessage = $"Error adding to Google Wallet: {ex.Message}";
+            qrCodeImage = ""; // hide the QR code from showing, in case it is already showing
         }
     }
 
@@ -244,6 +248,7 @@
         catch (Exception ex)
         {
             errorMessage = $"Error generating Apple Pass: {ex.Message}";
+            qrCodeImage = ""; // hide the QR code from showing, in case it is already showing
         }
     }
 
