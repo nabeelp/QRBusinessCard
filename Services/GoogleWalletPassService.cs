@@ -36,6 +36,7 @@ class GoogleWalletPassService
   public GoogleWalletPassService()
   {
     /// TODO: See if this can be changed to be retrieved from KeyVault
+    /// For now, run $env:GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\your\keyfile.json"
     keyFilePath = Environment.GetEnvironmentVariable(
         "GOOGLE_APPLICATION_CREDENTIALS") ?? "/path/to/key.json";
 

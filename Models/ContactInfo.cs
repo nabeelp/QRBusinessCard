@@ -9,5 +9,6 @@ namespace QRBusinessCard.Models
         public string JobTitle { get; set; } = "";
         public string Email { get; set; } = "";
         public string Phone { get; set; } = "";
+        public string Id { get; set; } = "";
     }
 }

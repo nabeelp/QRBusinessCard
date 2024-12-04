@@ -137,3 +137,5 @@ $RECYCLE.BIN/
 
 _NCrunch*
 secret-*
+pass.csr
+pass.key
